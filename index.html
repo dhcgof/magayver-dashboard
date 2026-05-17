@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magayver | Apanhado Geral do Varejo Brasileiro</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .kpi-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .kpi-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .kpi-value.success { color: var(--success); }
+        .kpi-value.danger { color: var(--danger); }
+        .kpi-value.warning { color: var(--warning); }
+        .kpi-value.accent { color: var(--accent); }
+        
+        .kpi-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .kpi-sublabel {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+        
+        .chart-wrapper.small {
+            height: 200px;
+        }
+        
+        .retailer-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .retailer-card:hover {
+            border-color: var(--accent);
+        }
+        
+        .retailer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .retailer-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .retailer-ticker {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-hover);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-good {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+        
+        .status-warning {
+            background: rgba(234, 179, 8, 0.1);
+            color: var(--warning);
+        }
+        
+        .status-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .retailer-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .metric {
+            background: var(--bg-hover);
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+        
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 0.875rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .comparison-table th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            background: var(--bg-hover);
+        }
+        
+        .comparison-table tr:hover td {
+            background: var(--bg-hover);
+        }
+        
+        .highlight-best {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .highlight-worst {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        .insight-box {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border-left: 4px solid var(--accent);
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        
+        .insight-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .insight-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .nav-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .risk-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+        }
+        
+        .risk-card h4 {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .risk-card p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+        
+        .checklist input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+        }
+        
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🔧</span>
+                <h1>magayver</h1>
+            </div>
+            <div class="meta">
+                <span class="badge">varejo inteligente</span>
+                <span class="last-update">Atualizado: 17/05/2026</span>
+            </div>
+        </header>
+
+        <!-- Navegação -->
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">← Panorama Geral</a>
+            <a href="dashboard.html" class="nav-link active">Análise Completa</a>
+            <a href="apanhado-geral-varejo.md" class="nav-link" download>📥 Download Análise (MD)</a>
+        </div>
+
+        <!-- Hero -->
+        <section class="hero" style="margin-top: 2rem;">
+            <h2>🏪 Apanhado Geral - Varejo Brasileiro 2025-2026</h2>
+            <p class="subtitle">Análise comparativa completa: Lojas Cem, Magazine Luiza, Casas Bahia, Via, Americanas, Assaí, GPA e mais</p>
+        </section>
+
+        <!-- KPIs Principais -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-value success">+5,5%</div>
+                <div class="kpi-label">Varejo Março 2026</div>
+                <div class="kpi-sublabel">Índice Stone (IVS)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value accent">14,1%</div>
+                <div class="kpi-label">Margem Lojas Cem</div>
+                <div class="kpi-sublabel">vs 4,4% média do setor</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value danger">7,01%</div>
+                <div class="kpi-label">Inadimplência Abril</div>
+                <div class="kpi-sublabel">Projeção IBEVAR-FIA</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value warning">14,50%</div>
+                <div class="kpi-label">Selic Atual</div>
+                <div class="kpi-sublabel">Corte 0,25pp em 29/04 | Projeção: 13,00% em 2026</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value success">R$ 84,7 Bi</div>
+                <div class="kpi-label">Faturamento Assaí</div>
+                <div class="kpi-sublabel">Crescimento resiliente</div>
+            </div>
+        </div>
+
+        <!-- Insight Principal -->
+        <div class="insight-box">
+            <div class="insight-title">💡 O Paradoxo do Varejo Brasileiro</div>
+            <div class="insight-text">
+                Enquanto grandes players como Magazine Luiza e Casas Bahia sofrem com juros altos, 
+                a <strong>Lojas Cem</strong> prova que um modelo espartano, com financiamento próprio e austeridade, 
+                pode gerar margens de <strong>14,1%</strong> — mais de 3x a média do setor. O spread financeiro está 
+                capturando mais valor que a venda do produto em si. Com Selic em 14,75% e inflação projetada em 4,80%, 
+                a disciplina financeira é mais importante que nunca.
+            </div>
+        </div>
+
+        <!-- Cenários que Influenciam o Consumo -->
+        <h3 style="margin: 2rem 0 1rem; color: var(--text-primary);">🎯 Cenários que Influenciam o Consumo</h3>
+
+        <div class="card wide-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(239, 68, 68, 0.1) 100%);">
+            <div class="card-header">
+                <span class="card-icon">🎰</span>
+                <h3>Bets Online: O Desvio de Renda do Consumo</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);">R$ 50,6 Bi</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Apostados em 2026</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">30,5 Mi</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Apostadores no Brasil</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);">R$ 42 Bi</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Ficam na cadeia das bets</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">R$ 1.800</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Ticket médio por apostador</div>
+                </div>
+            </div>
+            <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--danger);">
+                <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+                    <strong>Impacto no varejo:</strong> O dinheiro que antes ia para bares, restaurantes, cinemas e compras agora vai para o celular. 
+                    O Brasil dependente — 94 milhões de pessoas no CadÚnico — está endividado e apostando. 
+                    <em>"A combinação de inflação, inadimplência e bets explica o desempenho medíocre do varejo."</em> — Mercado e Consumo, 2025.
+                </div>
+            </div>
+        </div>
+
+        <div class="card wide-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(139, 92, 246, 0.1) 100%);">
+            <div class="card-header">
+                <span class="card-icon">💉</span>
+                <h3>Canetas Emagrecedoras (Ozempic/Wegovy): Revolução nos Hábitos</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">-20%</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Consumo de alimentos</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);">-19,4%</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Consumo de cerveja</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">+36%</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Bebidas sem álcool até 2029</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">US$ 150 Bi</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Mercado global até 2030</div>
+                </div>
+            </div>
+            <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--accent);">
+                <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+                    <strong>Impacto no varejo:</strong> Ozempic e Wegovy reduzem drasticamente o apetite. Supermercados reposicionam mix de produtos. 
+                    Fast-food e bebidas açucaradas sofrem. Farmácias e suplementos explodem. 
+                    <em>"O consumidor não deixou de celebrar, mas busca alternativas com menor impacto na saúde."</em> — Leandro Rosadas.
+                </div>
+            </div>
+        </div>
+
+        <div class="card wide-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(34, 197, 94, 0.1) 100%);">
+            <div class="card-header">
+                <span class="card-icon">🏪</span>
+                <h3>Players do Varejo: Cenário Atual</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--danger);">
+                    <div style="font-weight: 700; color: var(--danger); margin-bottom: 0.5rem;">❌ Ricardo Eletro — FALIDA</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Referência do varejo brasileiro que caiu por expansão agressiva via crédito próprio e inadimplência. Fundador seguiu novo caminho.</div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--success);">
+                    <div style="font-weight: 700; color: var(--success); margin-bottom: 0.5rem;">✅ Véio da Havan — CRESCENDO</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Faturamento recorde R$ 13,7Bi (+16,4%). Meta 2026: R$ 20Bi. 22 mil funcionários. R$ 1,25Bi em investimentos.</div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--accent);">
+                    <div style="font-weight: 700; color: var(--accent); margin-bottom: 0.5rem;">🎤 Dino Gueno — Referência</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Palestrante e referência máxima em varejo. Especialista em marketing, estratégia de vendas e liderança. Foco no varejista independente.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards das Lojas -->
+        <h3 style="margin: 2rem 0 1rem; color: var(--text-primary);">🏆 Análise por Varejista</h3>
+
+        <!-- Notícias do Dia -->
+        <div class="card wide-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(139, 92, 246, 0.1) 100%);">
+            <div class="card-header">
+                <span class="card-icon">📰</span>
+                <h3>Notícias do Dia — 14/05/2026</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--success);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">17/05/2026 | Estadão</div>
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Magazine Luiza 4T25: lucro R$ 131 mi e geração de caixa recorde</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Magazine Luiza 4T25: lucro R$ 131 mi e geração de caixa recorde</div>
+                    <div style="margin-top: 0.75rem;">
+                        <a href="https://einvestidor.estadao.com.br/ultimas/magazine-luiza-lucro-liquido-quarto-trimestre-2025/" target="_blank" style="color: var(--accent); font-size: 0.8rem; text-decoration: none; font-weight: 500;">🔗 Ler matéria completa →</a>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--success);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">17/05/2026 | InfoMoney</div>
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Lojas Renner: lucro recorde de R$ 257 mi no 1T26</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Lojas Renner: lucro recorde de R$ 257 mi no 1T26</div>
+                    <div style="margin-top: 0.75rem;">
+                        <a href="https://www.infomoney.com.br/mercados/lojas-renner-lren3-resultados-primeiro-trimestre-2026/" target="_blank" style="color: var(--accent); font-size: 0.8rem; text-decoration: none; font-weight: 500;">🔗 Ler matéria completa →</a>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--danger);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">17/05/2026 | Estadão</div>
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Casas Bahia 1T26: prejuízo R$ 1 bi, mas caixa livre positivo</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Casas Bahia 1T26: prejuízo R$ 1 bi, mas caixa livre positivo</div>
+                    <div style="margin-top: 0.75rem;">
+                        <a href="https://einvestidor.estadao.com.br/ultimas/casas-bahia-resultado-primeiro-trimestre-2026/" target="_blank" style="color: var(--accent); font-size: 0.8rem; text-decoration: none; font-weight: 500;">🔗 Ler matéria completa →</a>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--danger);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">17/05/2026 | Estadão</div>
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">GPA 1T26: prejuízo R$ 1,2 bi, dívida cai para R$ 2,1 bi após acordo</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">GPA 1T26: prejuízo R$ 1,2 bi, dívida cai para R$ 2,1 bi após acordo</div>
+                    <div style="margin-top: 0.75rem;">
+                        <a href="https://einvestidor.estadao.com.br/ultimas/gpa-resultado-primeiro-trimestre-2026/" target="_blank" style="color: var(--accent); font-size: 0.8rem; text-decoration: none; font-weight: 500;">🔗 Ler matéria completa →</a>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--success);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">17/05/2026 | InfoMoney</div>
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Nubank 1T26: lucro US$ 871 mi, mas frustra expectativas</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Nubank 1T26: lucro US$ 871 mi, mas frustra expectativas</div>
+                    <div style="margin-top: 0.75rem;">
+                        <a href="https://www.infomoney.com.br/mercados/nubank-roxo34-resultados-primeiro-trimestre-2026/" target="_blank" style="color: var(--accent); font-size: 0.8rem; text-decoration: none; font-weight: 500;">🔗 Ler matéria completa →</a>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--danger);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">17/05/2026 | Estadão</div>
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Lojas Cem: falência decretada, imóveis a leilão</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Lojas Cem: falência decretada, imóveis a leilão</div>
+                    <div style="margin-top: 0.75rem;">
+                        <a href="https://einvestidor.estadao.com.br/ultimas/lojas-cem-falencia-leilao-imoveis/" target="_blank" style="color: var(--accent); font-size: 0.8rem; text-decoration: none; font-weight: 500;">🔗 Ler matéria completa →</a>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 3px solid var(--accent);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">17/05/2026 | Fonte</div>
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Via Varejo vende US$ 700 mi em ações da Casas Bahia</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Via Varejo vende US$ 700 mi em ações da Casas Bahia</div>
+                    <div style="margin-top: 0.75rem;">
+                        <a href="https://www.seudinheiro.com/2026/empresas/via-varejo-vende-acoes-casas-bahia/" target="_blank" style="color: var(--accent); font-size: 0.8rem; text-decoration: none; font-weight: 500;">🔗 Ler matéria completa →</a>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; text-align: center;">
+                <a href="news-feed.md" class="nav-link" download style="display: inline-block;">📥 Download Feed Completo (MD)</a>
+            </div>
+        </div>
+
+        <!-- Lojas Cem -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">🔥 Lojas Cem</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">O Modelo Espartano</div>
+                </div>
+                <span class="status-badge status-good">✅ Crescendo</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 8 Bi</div>
+                    <div class="metric-label">Faturamento Est. 2025</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--success);">14,1%</div>
+                    <div class="metric-label">Margem de Lucro</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">306</div>
+                    <div class="metric-label">Lojas</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">70%</div>
+                    <div class="metric-label">Vendas a Prazo</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Fórmula:</strong> Sem e-commerce + Financiamento próprio (2,75% a.m.) + Imóveis próprios + 94% reinvestimento
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    "Não temos segredo. Temos uma lista de práticas que seguimos à risca." — Dalla Vecchia
+                </p>
+            </div>
+        </div>
+
+        <!-- Magazine Luiza -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">📱 Magazine Luiza (MGLU3)</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">Pressionada pelos Juros</div>
+                </div>
+                <span class="status-badge status-warning">⚠️ Moderada</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 11,1 Bi</div>
+                    <div class="metric-label">Receita 4T25 (+3,4%)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--warning);">R$ 131,6 M</div>
+                    <div class="metric-label">Lucro 4T25 (-55%)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">8,5%</div>
+                    <div class="metric-label">Margem EBITDA</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">+8,7%</div>
+                    <div class="metric-label">Vendas Físicas</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Desafio:</strong> Despesas financeiras cresceram 46,8% no 4T25 (R$ 572,5Mi). Selic de 14,75% penaliza resultado. Safra prevê prejuízo de R$ 28Mi no 1T26.
+                </p>
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                    <strong>Pontos Positivos:</strong> Lojas físicas bateram recorde, LuizaCred lucro +87%. Caixa líquido: R$ 3,1 Bi. Lançou 1º CDB via MagaluPay.
+                </p>
+            </div>
+        </div>
+
+        <!-- Casas Bahia -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">🏠 Casas Bahia (BHIA3)</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">9 Trimestres de Melhora na Margem</div>
+                </div>
+                <span class="status-badge status-warning">🟡 Recuperando</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 44,7 Bi</div>
+                    <div class="metric-label">GMV 2025 (recorde)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--warning);">-R$ 79 Mi</div>
+                    <div class="metric-label">Prejuízo Ajustado 4T25</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--success);">9,8%</div>
+                    <div class="metric-label">Margem EBITDA (+1,8 p.p.)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--success);">-75%</div>
+                    <div class="metric-label">Dívida Líquida</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Destaques 4T25:</strong> EBITDA ajustado R$ 826Mi (+29%), receita R$ 8,47Bi (+6,1%), alavancagem caiu para 0,4x. Prejuízo contábil de R$ 1,53Bi foi provisão IR diferido (sem efeito caixa).
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    <strong>1T26:</strong> Divulga 13/05/2026. Safra prevê prejuízo R$ 274Mi (vs R$ 408Mi 1T25). Foco em crediário próprio e parceria com Mercado Livre.
+                </p>
+            </div>
+        </div>
+
+        <!-- Via Varejo -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">⚠️ Via Varejo</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">Fora da Recuperação Judicial</div>
+                </div>
+                <span class="status-badge status-warning">🟡 Instável</span>
+            </div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                <p>• Saiu da Recuperação Judicial após renegociar dívidas</p>
+                <p>• Superexposição ao segmento eletroeletrônicos</p>
+                <p>• Possível fusão com Casas Bahia em discussão</p>
+                <p>• Caiu para 6ª posição no ranking de varejo</p>
+            </div>
+        </div>
+
+        <!-- Americanas -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">🔄 Americanas (AMER3)</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">Saiu da Recuperação Judicial (Mar/2026)</div>
+                </div>
+                <span class="status-badge status-warning">🟡 Recuperando</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--success);">-92,5%</div>
+                    <div class="metric-label">Redução Prejuízo 4T25</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">R$ 44 Mi</div>
+                    <div class="metric-label">Prejuízo 4T25</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">1.470</div>
+                    <div class="metric-label">Lojas (-117 vs 2024)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">95%</div>
+                    <div class="metric-label">Vendas Loja Física</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Novo modelo:</strong> Foco total em lojas físicas, digital como complemento (retirada em loja, entrega a partir das unidades). Store-in-store (WePink/Virgínia Fonseca), 500 mil cartões emitidos.
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    <strong>Prejuízo anual 2025:</strong> R$ 271Mi (vs lucro de R$ 8,3Bi em 2024 por efeitos extraordinários da reestruturação). Vendeu Imaginarium, Puket, Uni.Co.
+                </p>
+            </div>
+        </div>
+
+        <!-- Assaí -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">📦 Assaí Atacadista (ASAI3)</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">O Resiliente</div>
+                </div>
+                <span class="status-badge status-good">✅ Sólido</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 84,7 Bi</div>
+                    <div class="metric-label">Faturamento 2025</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">R$ 2,8 Bi</div>
+                    <div class="metric-label">Geração Caixa</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">2º</div>
+                    <div class="metric-label">Maior Varejista BR</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                    <strong>Fortaleza:</strong> Natureza defensiva do atacarejo. Expansão regional contínua. Menor dependência de crédito ao consumidor.
+                </p>
+            </div>
+        </div>
+
+        <!-- GPA (Pão de Açúcar) -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">🥖 GPA (PCAR3) - Pão de Açúcar</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">Recuperação Extrajudicial (Mar/2026)</div>
+                </div>
+                <span class="status-badge status-danger">🔴 Crítica</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 4,5 Bi</div>
+                    <div class="metric-label">Dívidas Totais</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--warning);">46%</div>
+                    <div class="metric-label">Adesão Credores</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">~1.700</div>
+                    <div class="metric-label">Lojas (Pão de Açúcar + Extra)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">R$ 170 Mi</div>
+                    <div class="metric-label">Cobrança Casas Bahia</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Status:</strong> Em recuperação extrajudicial desde março/2026. Tribunal Arbitral negou pedido de bloqueio de ações do Casino (acionista controlador).
+                </p>
+                <p style="font-size: 0.8rem; color: var(--danger);">
+                    <strong>Risco:</strong> Apenas 46% de adesão dos credores (~R$ 2,1Bi dos R$ 4,5Bi). Negociação de ajustes em andamento. Incerteza sobre futuro.
+                </p>
+            </div>
+        </div>
+
+        <!-- Tabela Comparativa -->
+        <div class="card wide-card">
+            <div class="card-header">
+                <span class="card-icon">📊</span>
+                <h3>Tabela Comparativa Completa</h3>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Indicador</th>
+                            <th>Lojas Cem</th>
+                            <th>Magazine Luiza</th>
+                            <th>Casas Bahia</th>
+                            <th>Via Varejo</th>
+                            <th>Americanas</th>
+                            <th>Assaí</th>
+                            <th>Gazin</th>
+                            <th>Grupo MM</th>
+                            <th>Colombo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Faturamento/GMV 2025</strong></td>
+                            <td>R$ 8 Bi</td>
+                            <td>R$ 38,7 Bi</td>
+                            <td class="highlight-best">R$ 44,7 Bi</td>
+                            <td>Instável</td>
+                            <td>~R$ 17 Bi</td>
+                            <td class="highlight-best">R$ 84,7 Bi</td>
+                            <td>R$ 11,5 Bi</td>
+                            <td>R$ 2 Bi</td>
+                            <td>R$ 2,6 Bi</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Margem EBITDA</strong></td>
+                            <td class="highlight-best">14,1%</td>
+                            <td>8,5%</td>
+                            <td>9,8%</td>
+                            <td class="highlight-worst">Negativa</td>
+                            <td>Melhorando</td>
+                            <td>6,3%</td>
+                            <td>N/D</td>
+                            <td>N/D</td>
+                            <td>N/D</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lucro/Prejuízo 4T25</strong></td>
+                            <td class="highlight-best">Lucro</td>
+                            <td class="highlight-warning">R$ 131,6 Mi (-55%)</td>
+                            <td class="highlight-warning">-R$ 79 Mi (ajustado)</td>
+                            <td class="highlight-worst">Prejuízo</td>
+                            <td class="highlight-warning">-R$ 44 Mi (-92,5%)</td>
+                            <td class="highlight-best">R$ 347 Mi</td>
+                            <td>N/D</td>
+                            <td>N/D</td>
+                            <td>N/D</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Situação</strong></td>
+                            <td class="highlight-best">Crescendo</td>
+                            <td>Pressionada</td>
+                            <td>Recuperando</td>
+                            <td class="highlight-worst">Instável</td>
+                            <td>Recuperando</td>
+                            <td class="highlight-best">Resiliente</td>
+                            <td class="highlight-best">Crescendo</td>
+                            <td class="highlight-best">Explodindo</td>
+                            <td class="highlight-best">Crescendo</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lojas</strong></td>
+                            <td>306</td>
+                            <td>1.246</td>
+                            <td>1.070</td>
+                            <td>1.000+</td>
+                            <td>1.470</td>
+                            <td>400+</td>
+                            <td>124</td>
+                            <td>N/D</td>
+                            <td>350+</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Modelo</strong></td>
+                            <td>Físico + Carnê</td>
+                            <td>Omnicanal</td>
+                            <td>Marketplace</td>
+                            <td>Eletrônicos</td>
+                            <td>Omnicanal</td>
+                            <td>Atacarejo</td>
+                        </tr>
+                        <tr>
+                            <td><strong>E-commerce</strong></td>
+                            <td class="highlight-best">Não opera</td>
+                            <td>Forte</td>
+                            <td>Dependente</td>
+                            <td>Forte</td>
+                            <td>Recuperando</td>
+                            <td>Crescente</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Financiamento</strong></td>
+                            <td class="highlight-best">Próprio</td>
+                            <td>Luizacred</td>
+                            <td>Terceiros</td>
+                            <td>Terceiros</td>
+                            <td>Terceiros</td>
+                            <td>À vista</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gazin -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">🏠 Gazin</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">O Gigante do Centro-Oeste</div>
+                </div>
+                <span class="status-badge status-good">✅ Crescendo</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 11,5 Bi</div>
+                    <div class="metric-label">Faturamento 2025</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--success);">+29%</div>
+                    <div class="metric-label">Crescimento</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">124</div>
+                    <div class="metric-label">Lojas</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">12 estados + DF</div>
+                    <div class="metric-label">Presença</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Destaque:</strong> 25º lugar no ranking IRTT 2025. Reconhecida 15 vezes como uma das melhores empresas para trabalhar no Brasil (GPTW).
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    <strong>Cenário:</strong> Expansão forte no Centro-Oeste e Norte. Modelo de eletrodomésticos com financiamento próprio. CEO Danilo Gazin.
+                </p>
+            </div>
+        </div>
+
+        <!-- Grupo MM -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">🛋️ Grupo MM</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">O Crescimento Acelerado do Paraná</div>
+                </div>
+                <span class="status-badge status-good">🚀 Explodindo</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 2 Bi</div>
+                    <div class="metric-label">Faturamento 2025</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--success);">+100%</div>
+                    <div class="metric-label">Em 3 anos</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">+28%</div>
+                    <div class="metric-label">Crescimento 2024</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">PR/SC</div>
+                    <div class="metric-label">Presença</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Destaque:</strong> Dobrou de tamanho em 3 anos. Atacado e varejo de móveis e eletrodomésticos. Novos centros logísticos para sustentar crescimento.
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    <strong>Cenário:</strong> Expansão via novos centros logísticos e lojas. Sede em Arapongas (PR). Foco no atacado como motor de crescimento.
+                </p>
+            </div>
+        </div>
+
+        <!-- Lojas Colombo -->
+        <div class="retailer-card">
+            <div class="retailer-header">
+                <div>
+                    <div class="retailer-name">🏡 Lojas Colombo</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">A Referência do Sul</div>
+                </div>
+                <span class="status-badge status-good">✅ Crescendo</span>
+            </div>
+            <div class="retailer-metrics">
+                <div class="metric">
+                    <div class="metric-value">R$ 2,6 Bi</div>
+                    <div class="metric-label">Faturamento 2024</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">350+</div>
+                    <div class="metric-label">Lojas (2025)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">270</div>
+                    <div class="metric-label">Cidades</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">4.000+</div>
+                    <div class="metric-label">Colaboradores</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Destaque:</strong> 65 anos de mercado. Maior rede de eletrodomésticos e móveis do Sul do Brasil. Expansão acelerada em Santa Catarina e Paraná.
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    <strong>Cenário:</strong> 16 lojas abertas em 2025, meta de 355. Frota própria de ~200 veículos. E-commerce forte. Sede em Farroupilha (RS). CEO Eduardo Colombo.
+                </p>
+            </div>
+        </div>
+
+        <!-- Gráfico Comparativo -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📈</span>
+                    <h3>Margens de Lucro - Comparação</h3>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="marginComparisonChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">💰</span>
+                    <h3>Faturamento 2025 (R$ Bilhões)</h3>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Riscos -->
+        <div class="card wide-card">
+            <div class="card-header">
+                <span class="card-icon">⚠️</span>
+                <h3>Riscos do Setor 2025-2026</h3>
+            </div>
+            <div class="risk-grid">
+                <div class="risk-card">
+                    <h4>🔴 Macroeconômicos</h4>
+                    <p>Selic em 14,75% com projeção de 13,00% em 2026. IPCA projetado em 4,80% (acima do teto de 4,5%). Juros médio de novas contratações: 32,8% a.a.</p>
+                </div>
+                <div class="risk-card">
+                    <h4>🟡 Competitivos</h4>
+                    <p>Chinesas (Shein, Temu, Shopee) com preços agressivos. TikTok Shop e Amazon crescendo. Pix Parcelado: 41% dos brasileiros como tendência.</p>
+                </div>
+                <div class="risk-card">
+                    <h4>🔴 Inadimplência</h4>
+                    <p>74,31 milhões de consumidores negativados (CNDL/SPC março/2026). Reincidência de 86,41%. Busca por crédito caiu 8,44% em fevereiro/2026.</p>
+                </div>
+                <div class="risk-card">
+                    <h4>🟡 Regulatórios</h4>
+                    <p>STJ limitou juros de varejistas a 1% ao mês. Custo logística crescente. Isenção de IR até R$ 5.000 pode impulsionar consumo.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oportunidades -->
+        <div class="card wide-card">
+            <div class="card-header">
+                <span class="card-icon">🎯</span>
+                <h3>Oportunidades Identificadas</h3>
+            </div>
+            <div class="insight-box" style="margin: 0;">
+                <div class="insight-title">1. Spread Financeiro</div>
+                <div class="insight-text">
+                    73 milhões de inadimplentes = demanda reprimida massiva. Bancos fecharam crédito para classes C/D. 
+                    Modelo de carnê próprio com 2% ao mês pode capturar mais valor que a venda do produto.
+                </div>
+            </div>
+            <div class="insight-box" style="margin-top: 1rem;">
+                <div class="insight-title">2. Eficiência Operacional</div>
+                <div class="insight-text">
+                    Lojas Cem prova: redução de desperdício = margem 3x maior. Americanas está recuperando via eficiência. 
+                    Foco em "volta ao básico" está funcionando.
+                </div>
+            </div>
+            <div class="insight-box" style="margin-top: 1rem;">
+                <div class="insight-title">3. Nichos Defensivos</div>
+                <div class="insight-text">
+                    Atacarejo (Assaí) e farmácias (Raia Drogasil) mostrando resiliência. Setores menos sensíveis a ciclos econômicos.
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist -->
+        <div class="card wide-card">
+            <div class="card-header">
+                <span class="card-icon">✅</span>
+                <h3>Checklist de Avaliação de Varejistas</h3>
+            </div>
+            <ul class="checklist">
+                <li><input type="checkbox"> Margem EBITDA > 7%?</li>
+                <li><input type="checkbox"> Endividamento controlado?</li>
+                <li><input type="checkbox"> Modelo de financiamento próprio ou terceirizado?</li>
+                <li><input type="checkbox"> Presença digital estratégica (não dependente)?</li>
+                <li><input type="checkbox"> Expansão via lucro próprio vs endividamento?</li>
+                <li><input type="checkbox"> Público-alvo bem definido?</li>
+                <li><input type="checkbox"> Geração de caixa positiva?</li>
+                <li><input type="checkbox"> Reinvestimento sistemático?</li>
+            </ul>
+        </div>
+
+        <!-- Conclusão -->
+        <div class="card wide-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.1) 100%);">
+            <div class="card-header">
+                <span class="card-icon">🎓</span>
+                <h3>Conclusão: Lições do Varejo</h3>
+            </div>
+            <div style="font-size: 0.95rem; line-height: 1.8; color: var(--text-secondary);">
+                <p style="margin-bottom: 1rem;">
+                    <strong>O varejo brasileiro está em transformação profunda.</strong> A dicotomia entre o modelo 
+                    espartano das Lojas Cem (margem 14%, sem e-commerce) e a estratégia omnicanal de grandes 
+                    players como Magazine Luiza (margem 8%, pressionada por juros) revela que <strong>não existe 
+                    uma única fórmula de sucesso</strong>.
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    A verdadeira lição é: <strong>disciplina financeira > escala.</strong> Lojas Cem prova que 
+                    spread financeiro + gestão austera + foco em nicho pode superar tecnologia e tamanho.
+                </p>
+                <p>
+                    Para 2026, as apostas são: eficiência operacional, modelos de financiamento próprio 
+                    (capturando a demanda dos 73M de inadimplentes), e nichos defensivos como atacarejo.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>magayver • Análise Completa do Varejo Brasileiro</p>
+            <p class="small">Fontes: Balanços empresariais, Valor Econômico, Exame, Estadão, B3, Serasa</p>
+            <p class="small">Atualizado: 17/05/2026 • <a href="apanhado-geral-varejo.md" style="color: var(--accent);">Download Análise Completa</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Gráfico Comparativo de Margens
+        const marginCtx = document.getElementById('marginComparisonChart').getContext('2d');
+        new Chart(marginCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Lojas Cem', 'Assaí', 'Magazine Luiza', 'Média Setor', 'Americanas', 'Casas Bahia', 'Via'],
+                datasets: [{
+                    label: 'Margem EBITDA/Lucro (%)',
+                    data: [14.1, 5.5, 7.9, 4.4, 2.0, -8.5, -12.0],
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.8)',   // Lojas Cem - verde
+                        'rgba(34, 197, 94, 0.6)',   // Assaí
+                        'rgba(234, 179, 8, 0.8)',   // Magalu - amarelo
+                        'rgba(100, 116, 139, 0.5)', // Média
+                        'rgba(234, 179, 8, 0.5)',   // Americanas
+                        'rgba(239, 68, 68, 0.8)',   // Casas Bahia - vermelho
+                        'rgba(239, 68, 68, 0.9)'    // Via - vermelho escuro
+                    ],
+                    borderColor: [
+                        '#22c55e',
+                        '#22c55e',
+                        '#eab308',
+                        '#64748b',
+                        '#eab308',
+                        '#ef4444',
+                        '#dc2626'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#2a2a3a' },
+                        ticks: { 
+                            color: '#a0a0b0',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#a0a0b0' }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Faturamento
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Assaí', 'Magazine Luiza', 'Casas Bahia', 'Americanas', 'Lojas Cem'],
+                datasets: [{
+                    data: [84.7, 38.7, 34.8, 20.0, 8.0],
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.9)',   // Assaí - roxo
+                        'rgba(234, 179, 8, 0.8)',   // Magalu
+                        'rgba(239, 68, 68, 0.8)',   // Casas Bahia
+                        'rgba(100, 116, 139, 0.7)', // Americanas
+                        'rgba(34, 197, 94, 0.8)'    // Lojas Cem
+                    ],
+                    borderColor: '#1a1a2e',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#a0a0b0' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': R$ ' + context.parsed + ' Bi';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
